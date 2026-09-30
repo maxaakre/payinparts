@@ -17,6 +17,14 @@ describe('buildSystemPrompt', () => {
     expect(p).toContain('Always mention the total cost');
     expect(p).toContain('Never encourage');
   });
+
+  it('asks for plain text, because the UI does not render markdown', () => {
+    expect(buildSystemPrompt('sv')).toContain('Plain text only');
+  });
+
+  it('explains that the monthly payment already includes the fee', () => {
+    expect(buildSystemPrompt('sv')).toContain('monthlyPaymentInclFeesKr already includes');
+  });
 });
 
 describe('buildUserMessage', () => {
@@ -24,6 +32,12 @@ describe('buildUserMessage', () => {
     const msg = buildUserMessage({ productName: 'Sofa', plan, alternatives: [alt], question: 'Is this good?' });
     expect(msg).toContain(`"totalCostKr":${plan.totalCostOre / 100}`);
     expect(msg).toContain('"option":"split_6"');
+  });
+
+  it('labels the monthly payment as including fees', () => {
+    const msg = buildUserMessage({ productName: 'Sofa', plan, alternatives: [], question: 'Hi' });
+    expect(msg).toContain(`"monthlyPaymentInclFeesKr":${plan.monthlyCostOre / 100}`);
+    expect(msg).not.toContain('"monthlyCostKr"');
   });
 
   it('stops the question from breaking out of its tag', () => {
