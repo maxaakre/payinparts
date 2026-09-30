@@ -39,7 +39,7 @@ export async function putOrder(order: OrderMeta): Promise<void> {
 }
 
 export async function getOrderMeta(id: string): Promise<OrderMeta | undefined> {
-  const res = await doc.send(new GetCommand({ TableName: tableName(), Key: { PK: pk(id), SK: 'META' } }));
+  const res = await doc.send(new GetCommand({ TableName: tableName(), Key: { PK: pk(id), SK: 'META' }, ConsistentRead: true }));
   return res.Item ? strip<OrderMeta>(res.Item) : undefined;
 }
 
@@ -49,6 +49,7 @@ export async function getOrder(id: string): Promise<Order | undefined> {
       TableName: tableName(),
       KeyConditionExpression: 'PK = :pk',
       ExpressionAttributeValues: { ':pk': pk(id) },
+      ConsistentRead: true, // read-after-write across requests must not see stale data
     }),
   );
   const items = res.Items ?? [];

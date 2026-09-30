@@ -1,6 +1,7 @@
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { getOrderMeta } from '../src/db';
 import { handler } from '../src/handlers/orders';
 import { decisionItem, orderItem } from './fixtures';
 import { call, makeEvent } from './helpers';
@@ -40,6 +41,12 @@ describe('GET /api/orders/{id}', () => {
     expect(res.body.id).toBe('o1');
     expect(res.body.PK).toBeUndefined();
     expect(res.body.decision.status).toBe('approved');
+  });
+
+  it('reads with strong consistency', async () => {
+    ddb.on(QueryCommand).resolves({ Items: [orderItem()] });
+    await call(handler, makeEvent('GET /api/orders/{id}', { id: 'o1' }));
+    expect(ddb.commandCalls(QueryCommand)[0]!.args[0].input.ConsistentRead).toBe(true);
   });
 
   it('returns 404 for an unknown order', async () => {
@@ -101,5 +108,14 @@ describe('unknown route', () => {
     ddb.on(GetCommand).resolves({});
     const res = await call(handler, makeEvent('DELETE /api/orders/{id}', { id: 'o1' }));
     expect(res.status).toBe(404);
+  });
+});
+
+describe('getOrderMeta', () => {
+  it('reads with strong consistency', async () => {
+    ddb.on(GetCommand).resolves({ Item: orderItem() });
+    const meta = await getOrderMeta('o1');
+    expect(meta?.id).toBe('o1');
+    expect(ddb.commandCalls(GetCommand)[0]!.args[0].input.ConsistentRead).toBe(true);
   });
 });
