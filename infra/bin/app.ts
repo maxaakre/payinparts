@@ -1,6 +1,7 @@
 import { App } from 'aws-cdk-lib';
 import { fileURLToPath } from 'node:url';
 import { PayInPartsStack } from '../lib/payinparts-stack';
+import { GithubOidcStack } from '../lib/github-oidc-stack';
 
 const app = new App();
 
@@ -20,3 +21,5 @@ new PayInPartsStack(app, 'PayInParts', {
   modelId: requireContext('modelId'),
   webAssetPath: fileURLToPath(new URL('../../apps/web/dist', import.meta.url)),
 });
+
+new GithubOidcStack(app, 'PayInPartsGithubOidc', { env, githubRepo: requireContext('githubRepo') });
