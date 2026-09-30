@@ -2,11 +2,13 @@
 # Quick health check against the deployed site. Usage: scripts/smoke.sh https://xxxx.cloudfront.net
 set -euo pipefail
 URL="${1:?usage: smoke.sh <site-url>}"
+URL="${URL%/}"
 BODY=$(mktemp)
+trap 'rm -f "$BODY"' EXIT
 
 check() {
   local path="$1" expected="$2" code
-  code=$(curl -s -o "$BODY" -w '%{http_code}' "$URL$path")
+  code=$(curl -s --max-time 15 --retry 3 --retry-all-errors -o "$BODY" -w '%{http_code}' "$URL$path")
   if [[ "$code" != "$expected" ]]; then
     echo "FAIL $path -> $code (expected $expected)"
     cat "$BODY"
