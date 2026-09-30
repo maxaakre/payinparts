@@ -19,6 +19,7 @@ describe('PlanTable', () => {
     expect(total.textContent).toContain(formatKr(plan.totalCostOre, 'en'));
     const monthly = screen.getByText('Monthly cost').closest('tr')!;
     expect(monthly.textContent).toContain(formatKr(plan.monthlyCostOre, 'en'));
+    expect(monthly.nextElementSibling).toBe(total);
     expect(screen.getByText('Effective annual rate')).toBeTruthy();
   });
 

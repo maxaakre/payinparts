@@ -21,7 +21,7 @@ export function CheckoutPage() {
     const plan = calculatePlan(product.priceOre, o);
     return o === 'pay_now' || o === 'invoice_30'
       ? formatKr(plan.totalCostOre, lang)
-      : `${formatKr(plan.monthlyCostOre, lang)}${t('perMonth')}`;
+      : `${formatKr(plan.monthlyCostOre, lang)}${t('perMonth')} · ${t('totalShort', { amount: formatKr(plan.totalCostOre, lang) })}`;
   };
 
   async function onContinue() {

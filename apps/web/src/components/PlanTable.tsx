@@ -19,8 +19,10 @@ export function PlanTable({ plan }: { plan: PaymentPlan }) {
     );
   }
 
+  // Total cost sits right after monthly cost so they are always read together
   const rows: [string, string][] = [
     [t('monthlyCost'), money(plan.monthlyCostOre)],
+    [t('totalCost'), money(plan.totalCostOre)],
     [t('numberOfPayments'), String(plan.months)],
     [t('interestRate'), percent(plan.yearlyRate)],
     [t('setupFee'), money(plan.setupFeeOre)],
@@ -35,15 +37,11 @@ export function PlanTable({ plan }: { plan: PaymentPlan }) {
       <caption>{t('planTitle')}</caption>
       <tbody>
         {rows.map(([label, value]) => (
-          <tr key={label}>
+          <tr key={label} className={label === t('totalCost') ? 'total' : undefined}>
             <th scope="row">{label}</th>
             <td>{value}</td>
           </tr>
         ))}
-        <tr className="total">
-          <th scope="row">{t('totalCost')}</th>
-          <td>{money(plan.totalCostOre)}</td>
-        </tr>
       </tbody>
     </table>
   );
