@@ -22,4 +22,8 @@ new PayInPartsStack(app, 'PayInParts', {
   webAssetPath: fileURLToPath(new URL('../../apps/web/dist', import.meta.url)),
 });
 
-new GithubOidcStack(app, 'PayInPartsGithubOidc', { env, githubRepo: requireContext('githubRepo') });
+new GithubOidcStack(app, 'PayInPartsGithubOidc', {
+  env,
+  githubRepo: requireContext('githubRepo'),
+  githubSubjectPrefix: app.node.tryGetContext('githubSubjectPrefix'),
+});

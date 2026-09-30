@@ -1,6 +1,7 @@
 {
   "app": "npx tsx bin/app.ts",
   "context": {
-    "modelId": "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    "modelId": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "githubSubjectPrefix": "repo:maxaakre@36918283/payinparts@1398549315"
   }
 }

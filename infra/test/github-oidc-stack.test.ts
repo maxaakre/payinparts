@@ -31,6 +31,24 @@ describe('GitHub OIDC', () => {
     });
   });
 
+  it('supports GitHub immutable subject claims', () => {
+    const immutable = Template.fromStack(
+      new GithubOidcStack(new App(), 'OidcImmutable', {
+        env: { account: '123456789012', region: 'eu-north-1' },
+        githubRepo: 'acme/resurs-demo',
+        githubSubjectPrefix: 'repo:acme@111/resurs-demo@222',
+      }),
+    );
+    immutable.hasResourceProperties('AWS::IAM::Role', {
+      RoleName: 'payinparts-github-deploy',
+      ...trustFor('repo:acme@111/resurs-demo@222:ref:refs/heads/main'),
+    });
+    immutable.hasResourceProperties('AWS::IAM::Role', {
+      RoleName: 'payinparts-github-diff',
+      ...trustFor('repo:acme@111/resurs-demo@222:pull_request'),
+    });
+  });
+
   it('diff role trusts only pull requests', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
       RoleName: 'payinparts-github-diff',
