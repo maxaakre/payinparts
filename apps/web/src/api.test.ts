@@ -34,4 +34,12 @@ describe('api client', () => {
     expect(err).toBeInstanceOf(ApiRequestError);
     expect((err as ApiRequestError).code).toBe('INTERNAL_ERROR');
   });
+
+  it('maps status to a code when the error body has no error object', async () => {
+    for (const [status, code] of [[429, 'RATE_LIMITED'], [404, 'NOT_FOUND'], [500, 'INTERNAL_ERROR']] as const) {
+      mockFetch(status, { message: 'Too Many Requests' });
+      const err = await api.getOrder('o1').catch((e: unknown) => e);
+      expect(err).toMatchObject({ status, code });
+    }
+  });
 });

@@ -19,6 +19,13 @@ export class ApiRequestError extends Error {
   }
 }
 
+// Gateway-level errors (throttling, unknown routes) come without our error shape
+function codeForStatus(status: number): string {
+  if (status === 429) return 'RATE_LIMITED';
+  if (status === 404) return 'NOT_FOUND';
+  return 'INTERNAL_ERROR';
+}
+
 async function request<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   const hasBody = init.body !== undefined;
   const res = await fetch(path, {
@@ -29,7 +36,7 @@ async function request<T>(path: string, init: { method?: string; body?: unknown 
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
     const err = (data as ApiError | null)?.error;
-    throw new ApiRequestError(res.status, err?.code ?? 'INTERNAL_ERROR', err?.message ?? 'Request failed');
+    throw new ApiRequestError(res.status, err?.code ?? codeForStatus(res.status), err?.message ?? 'Request failed');
   }
   return data as T;
 }

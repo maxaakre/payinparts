@@ -54,6 +54,7 @@ export const en = {
   aiUnavailable: 'The helper is not available right now. The plan above is still correct.',
   loading: 'Loading…',
   errorGeneric: 'Something went wrong. Please try again.',
+  pageNotFound: 'We could not find that page.',
   orderNotFound: 'We could not find that order.',
   productNotFound: 'We could not find that product.',
 };
@@ -116,6 +117,7 @@ export const sv: Record<MessageKey, string> = {
   aiUnavailable: 'Hjälpen är inte tillgänglig just nu. Planen ovan stämmer fortfarande.',
   loading: 'Laddar…',
   errorGeneric: 'Något gick fel. Försök igen.',
+  pageNotFound: 'Vi hittade inte den sidan.',
   orderNotFound: 'Vi hittade inte den ordern.',
   productNotFound: 'Vi hittade inte den produkten.',
 };

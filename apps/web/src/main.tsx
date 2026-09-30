@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { I18nProvider } from './i18n';
 import { Layout } from './Layout';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { OrderPage } from './pages/OrderPage';
 import { ShopPage } from './pages/ShopPage';
 import './styles.css';
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
       { index: true, element: <ShopPage /> },
       { path: 'checkout/:productId', element: <CheckoutPage /> },
       { path: 'orders/:id', element: <OrderPage /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]);

@@ -8,6 +8,12 @@ import { ExplainPanel } from '../components/ExplainPanel';
 import { PlanTable } from '../components/PlanTable';
 import { useI18n } from '../i18n';
 
+function withoutDecision(order: Order): Order {
+  const copy = { ...order };
+  delete copy.decision;
+  return copy;
+}
+
 type LoadState = 'loading' | 'ready' | 'notfound' | 'error';
 
 export function OrderPage() {
@@ -76,6 +82,7 @@ export function OrderPage() {
         <>
           <CreditCheckForm
             disabled={busy}
+            onChange={() => setOrder((o) => (o?.decision ? withoutDecision(o) : o))}
             onSubmit={(input) => run(() => api.creditCheck(current.id, input), (decision) => setOrder({ ...current, decision }))}
           />
           {order.decision && <DecisionMessage decision={order.decision} onSwitch={switchTo} />}

@@ -7,9 +7,12 @@ const firstPersona = PERSONAS[0]!;
 export function CreditCheckForm({
   disabled,
   onSubmit,
+  onChange,
 }: {
   disabled: boolean;
   onSubmit: (input: CreditCheckInput) => void;
+  /** Fired when persona or income changes, so callers can drop a stale decision. */
+  onChange?: () => void;
 }) {
   const { t } = useI18n();
   const [personaId, setPersonaId] = useState(firstPersona.id);
@@ -20,6 +23,7 @@ export function CreditCheckForm({
 
   function pickPersona(id: string) {
     setPersonaId(id);
+    onChange?.();
     const persona = findPersona(id);
     if (persona) setIncome(String(persona.defaultMonthlyIncomeKr));
   }
@@ -54,7 +58,10 @@ export function CreditCheckForm({
           max={200000}
           step={1}
           value={income}
-          onChange={(e) => setIncome(e.target.value)}
+          onChange={(e) => {
+            setIncome(e.target.value);
+            onChange?.();
+          }}
           aria-invalid={!valid}
         />
       </label>
