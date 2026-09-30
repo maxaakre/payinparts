@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - services/*
+  - packages/*
+  - infra
+  - e2e
+onlyBuiltDependencies:
+  - esbuild
