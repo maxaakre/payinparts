@@ -1,4 +1,4 @@
-# Delbetala — Design Spec
+# PayInParts — Design Spec
 
 **Date:** 2026-09-30
 **Author:** Max Aakre
@@ -154,7 +154,8 @@ docs/decisions/    Short decision notes (ADRs)
   language; say clearly that this is a demo.
 - **Limits:**
   - Max 20 questions per order (counter in DynamoDB).
-  - API Gateway throttling on the route.
+  - Global cap of 500 questions per UTC day (counter in DynamoDB).
+  - API Gateway throttling on the route (1 request/s, burst 2).
   - Max output tokens set low (about 400).
 - **Failure:** if Bedrock fails or times out, the UI shows "The helper is not
   available right now" and the plan table still works.
@@ -167,8 +168,8 @@ docs/decisions/    Short decision notes (ADRs)
     this repo's `main` branch (and a read-only role for PR `cdk diff`).
   - Lambdas: one execution role each, least privilege:
     - `products`: logs only
-    - `credit-check`: `PutItem` on the table
-    - `orders`: `PutItem` / `GetItem` on the table
+    - `credit-check`: `GetItem` / `PutItem` on the table
+    - `orders`: `PutItem` / `Query` / `UpdateItem` on the table
     - `explain-plan`: `GetItem` / `UpdateItem` on the table + `bedrock:InvokeModel`
       on the chosen model/inference profile only
 - S3 bucket is private; only CloudFront can read it.
@@ -196,10 +197,14 @@ GitHub Actions:
 ## 10. Observability
 
 - **Structured JSON logs** with AWS Lambda Powertools (logger, tracer, metrics).
-- **X-Ray tracing** across API Gateway → Lambda → DynamoDB / Bedrock.
+- **X-Ray tracing** from Lambda to DynamoDB / Bedrock. The HTTP API has no
+  X-Ray support, so traces start at the Lambda.
 - **Custom metrics:** credit decisions by result, AI questions, AI tokens used.
 - **CloudWatch dashboard:** requests, errors, latency (p50/p95), AI usage.
-- **Alarms:** Lambda error rate, API 5xx rate, and the AWS budget.
+- **Alarms:** Lambda errors, API 5xx rate, AI usage per hour, and the AWS budget.
+  Lambda error alarms only catch timeouts, init failures and OOM, because the
+  handler wrapper returns app errors as 500 responses. The API 5xx alarm is the
+  main signal.
 
 ## 11. Error handling
 
