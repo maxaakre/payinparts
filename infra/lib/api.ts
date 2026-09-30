@@ -78,7 +78,7 @@ export class ApiConstruct extends Construct {
     this.api.addRoutes({ path: '/api/orders/{id}', methods: [HttpMethod.GET], integration: ordersIntegration });
     this.api.addRoutes({ path: '/api/orders/{id}/confirm', methods: [HttpMethod.POST], integration: ordersIntegration });
     this.api.addRoutes({ path: '/api/orders/{id}/credit-check', methods: [HttpMethod.POST], integration: integration(creditCheck) });
-    this.api.addRoutes({ path: '/api/orders/{id}/explain', methods: [HttpMethod.POST], integration: integration(explainPlan) });
+    const explainRoutes = this.api.addRoutes({ path: '/api/orders/{id}/explain', methods: [HttpMethod.POST], integration: integration(explainPlan) });
 
     // Throttling: RouteSettings is raw CloudFormation JSON, so keys use CFN casing
     const stage = this.api.defaultStage!.node.defaultChild as CfnStage;
@@ -86,5 +86,7 @@ export class ApiConstruct extends Construct {
     stage.routeSettings = {
       'POST /api/orders/{id}/explain': { ThrottlingRateLimit: 1, ThrottlingBurstLimit: 2 },
     };
+    // RouteSettings may only name routes that already exist, so create them first
+    for (const route of explainRoutes) stage.node.addDependency(route);
   }
 }
