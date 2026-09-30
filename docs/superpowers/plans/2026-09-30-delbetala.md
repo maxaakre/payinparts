@@ -1,8 +1,8 @@
-# Delbetala Implementation Plan
+# PayInParts Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build and deploy "Delbetala", a demo pay-later checkout with an AI "explain this plan" helper, on AWS serverless, for a technical interview at Resurs.
+**Goal:** Build and deploy "PayInParts", a demo pay-later checkout with an AI "explain this plan" helper, on AWS serverless, for a technical interview at Resurs.
 
 **Architecture:** pnpm TypeScript monorepo. A pure `packages/core` holds money math, credit rules, products and the API contract (Zod), shared by a React frontend (`apps/web`) and four Lambda handlers (`services/api`). AWS CDK (`infra`) deploys S3 + CloudFront, API Gateway HTTP API, Lambda, DynamoDB, Bedrock access, monitoring, and a GitHub OIDC deploy role.
 
@@ -54,7 +54,7 @@ services/api/src/
   handlers/products.ts, orders.ts, credit-check.ts, explain-plan.ts
 infra/
   bin/app.ts
-  lib/delbetala-stack.ts, api.ts, web.ts, monitoring.ts, github-oidc-stack.ts
+  lib/payinparts-stack.ts, api.ts, web.ts, monitoring.ts, github-oidc-stack.ts
 apps/web/src/
   main.tsx, Layout.tsx, i18n.tsx, messages.ts, api.ts, styles.css
   pages/ShopPage.tsx, CheckoutPage.tsx, OrderPage.tsx
@@ -82,7 +82,7 @@ docs/decisions/0001..0005-*.md, README.md
 `package.json`:
 ```json
 {
-  "name": "delbetala",
+  "name": "payinparts",
   "private": true,
   "type": "module",
   "scripts": {
@@ -175,7 +175,7 @@ export default tseslint.config(
 
 `CLAUDE.md`:
 ```markdown
-# Delbetala — project notes for AI agents
+# PayInParts — project notes for AI agents
 
 Demo pay-later checkout for a Resurs technical interview. **No real money, no real personal data.**
 
@@ -197,7 +197,7 @@ Demo pay-later checkout for a Resurs technical interview. **No real money, no re
 ## Commands
 - `pnpm test` — all unit tests
 - `pnpm typecheck` / `pnpm lint`
-- `pnpm --filter @delbetala/web dev` — frontend (set `VITE_API_PROXY` to the deployed URL)
+- `pnpm --filter @payinparts/web dev` — frontend (set `VITE_API_PROXY` to the deployed URL)
 ```
 
 - [ ] **Step 2: Pin pnpm and install root dev tools**
@@ -215,7 +215,7 @@ Expected: `package.json` gains a `packageManager` field and `devDependencies`; `
 `packages/core/package.json`:
 ```json
 {
-  "name": "@delbetala/core",
+  "name": "@payinparts/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -239,8 +239,8 @@ Expected: `package.json` gains a `packageManager` field and `devDependencies`; `
 
 Run:
 ```bash
-pnpm --filter @delbetala/core add zod
-pnpm --filter @delbetala/core add -D vitest typescript
+pnpm --filter @payinparts/core add zod
+pnpm --filter @payinparts/core add -D vitest typescript
 ```
 
 - [ ] **Step 4: Write the failing test**
@@ -275,7 +275,7 @@ describe('formatKr', () => {
 
 - [ ] **Step 5: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: FAIL — cannot resolve `../src/money`.
 
 - [ ] **Step 6: Implement**
@@ -307,7 +307,7 @@ export * from './money';
 
 - [ ] **Step 7: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @delbetala/core test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @payinparts/core test && pnpm typecheck && pnpm lint`
 Expected: 4 tests PASS; no type or lint errors.
 
 - [ ] **Step 8: Commit**
@@ -420,7 +420,7 @@ describe('needsCreditCheck', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: FAIL — cannot resolve `../src/plans`.
 
 - [ ] **Step 3: Implement**
@@ -543,7 +543,7 @@ export * from './plans';
 
 - [ ] **Step 4: Run tests**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: all PASS.
 
 - [ ] **Step 5: Commit**
@@ -641,7 +641,7 @@ describe('PERSONAS', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: FAIL — cannot resolve `../src/credit`.
 
 - [ ] **Step 3: Implement**
@@ -725,7 +725,7 @@ export * from './credit';
 
 - [ ] **Step 4: Run tests**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: all PASS.
 
 - [ ] **Step 5: Commit**
@@ -812,7 +812,7 @@ describe('ExplainRequest', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/core test`
+Run: `pnpm --filter @payinparts/core test`
 Expected: FAIL — cannot resolve `../src/contract`.
 
 - [ ] **Step 3: Implement**
@@ -911,7 +911,7 @@ export * from './contract';
 
 - [ ] **Step 4: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/core test && pnpm --filter @delbetala/core typecheck`
+Run: `pnpm --filter @payinparts/core test && pnpm --filter @payinparts/core typecheck`
 Expected: all PASS.
 
 - [ ] **Step 5: Commit**
@@ -932,7 +932,7 @@ git commit -m "feat(core): products and API contract schemas"
 - Test: `services/api/test/http.test.ts`, `services/api/test/products.test.ts`
 
 **Interfaces:**
-- Consumes: `ErrorCode`, `PRODUCTS` from `@delbetala/core`
+- Consumes: `ErrorCode`, `PRODUCTS` from `@payinparts/core`
 - Produces:
   - `logger`, `metrics`, `tracer` (Powertools singletons)
   - `class HttpError extends Error { status: number; code: ErrorCode }`
@@ -947,7 +947,7 @@ git commit -m "feat(core): products and API contract schemas"
 `services/api/package.json`:
 ```json
 {
-  "name": "@delbetala/api",
+  "name": "@payinparts/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -977,7 +977,7 @@ export default defineConfig({
       TABLE_NAME: 'test-table',
       MODEL_ID: 'test-model',
       POWERTOOLS_SERVICE_NAME: 'test',
-      POWERTOOLS_METRICS_NAMESPACE: 'Delbetala',
+      POWERTOOLS_METRICS_NAMESPACE: 'PayInParts',
       POWERTOOLS_METRICS_DISABLED: 'true',
       POWERTOOLS_TRACE_ENABLED: 'false',
       POWERTOOLS_LOG_LEVEL: 'SILENT',
@@ -988,8 +988,8 @@ export default defineConfig({
 
 Run:
 ```bash
-pnpm --filter @delbetala/api add @delbetala/core@workspace:* zod @aws-lambda-powertools/logger @aws-lambda-powertools/metrics @aws-lambda-powertools/tracer @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb @aws-sdk/client-bedrock-runtime
-pnpm --filter @delbetala/api add -D vitest typescript @types/node @types/aws-lambda aws-sdk-client-mock
+pnpm --filter @payinparts/api add @payinparts/core@workspace:* zod @aws-lambda-powertools/logger @aws-lambda-powertools/metrics @aws-lambda-powertools/tracer @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb @aws-sdk/client-bedrock-runtime
+pnpm --filter @payinparts/api add -D vitest typescript @types/node @types/aws-lambda aws-sdk-client-mock
 ```
 
 - [ ] **Step 2: Write test helpers**
@@ -1121,7 +1121,7 @@ describe('GET /api/products', () => {
 
 - [ ] **Step 4: Run tests to verify they fail**
 
-Run: `pnpm --filter @delbetala/api test`
+Run: `pnpm --filter @payinparts/api test`
 Expected: FAIL — cannot resolve `../src/http`.
 
 - [ ] **Step 5: Implement**
@@ -1131,7 +1131,7 @@ Expected: FAIL — cannot resolve `../src/http`.
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { Tracer } from '@aws-lambda-powertools/tracer';
-import type { ErrorCode } from '@delbetala/core';
+import type { ErrorCode } from '@payinparts/core';
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda';
 import type { ZodType } from 'zod';
 
@@ -1207,7 +1207,7 @@ export function httpHandler(fn: (event: APIGatewayProxyEventV2) => Promise<HttpR
 
 `services/api/src/handlers/products.ts`:
 ```ts
-import { PRODUCTS } from '@delbetala/core';
+import { PRODUCTS } from '@payinparts/core';
 import { httpHandler, ok } from '../http';
 
 export const handler = httpHandler(async () => ok({ products: PRODUCTS }));
@@ -1215,7 +1215,7 @@ export const handler = httpHandler(async () => ok({ products: PRODUCTS }));
 
 - [ ] **Step 6: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/api test && pnpm --filter @delbetala/api typecheck`
+Run: `pnpm --filter @payinparts/api test && pnpm --filter @payinparts/api typecheck`
 Expected: all PASS.
 
 - [ ] **Step 7: Commit**
@@ -1251,7 +1251,7 @@ git commit -m "feat(api): HTTP helpers with error shape and products handler"
 
 `services/api/test/fixtures.ts`:
 ```ts
-import { calculatePlan, kr, RULES_VERSION, type DecisionStatus } from '@delbetala/core';
+import { calculatePlan, kr, RULES_VERSION, type DecisionStatus } from '@payinparts/core';
 
 export function orderItem(overrides: Record<string, unknown> = {}) {
   const option = (overrides.option as 'split_3' | 'pay_now' | undefined) ?? 'split_3';
@@ -1398,7 +1398,7 @@ describe('unknown route', () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/api test`
+Run: `pnpm --filter @payinparts/api test`
 Expected: FAIL — cannot resolve `../src/handlers/orders`.
 
 - [ ] **Step 4: Implement the repository**
@@ -1407,7 +1407,7 @@ Expected: FAIL — cannot resolve `../src/handlers/orders`.
 ```ts
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import type { Order, StoredDecision } from '@delbetala/core';
+import type { Order, StoredDecision } from '@payinparts/core';
 import { tracer } from './http';
 
 export type OrderMeta = Omit<Order, 'decision'>;
@@ -1518,7 +1518,7 @@ export async function incrementAiCount(orderId: string, max: number): Promise<nu
 `services/api/src/handlers/orders.ts`:
 ```ts
 import { randomUUID } from 'node:crypto';
-import { calculatePlan, CreateOrderRequest, findProduct, needsCreditCheck } from '@delbetala/core';
+import { calculatePlan, CreateOrderRequest, findProduct, needsCreditCheck } from '@payinparts/core';
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { confirmOrder, getOrder, putOrder, type OrderMeta } from '../db';
 import { HttpError, httpHandler, logger, ok, parseBody, pathId, type HttpResult } from '../http';
@@ -1578,7 +1578,7 @@ export const handler = httpHandler(async (event) => {
 
 - [ ] **Step 6: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/api test && pnpm --filter @delbetala/api typecheck`
+Run: `pnpm --filter @payinparts/api test && pnpm --filter @payinparts/api typecheck`
 Expected: all PASS.
 
 - [ ] **Step 7: Commit**
@@ -1677,7 +1677,7 @@ describe('POST /api/orders/{id}/credit-check', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/api test -- credit-check`
+Run: `pnpm --filter @payinparts/api test -- credit-check`
 Expected: FAIL — cannot resolve `../src/handlers/credit-check`.
 
 - [ ] **Step 3: Implement**
@@ -1692,7 +1692,7 @@ import {
   kr,
   needsCreditCheck,
   type StoredDecision,
-} from '@delbetala/core';
+} from '@payinparts/core';
 import { getOrderMeta, putDecision } from '../db';
 import { HttpError, httpHandler, logger, metrics, ok, parseBody, pathId } from '../http';
 
@@ -1731,7 +1731,7 @@ export const handler = httpHandler(async (event) => {
 
 - [ ] **Step 4: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/api test && pnpm --filter @delbetala/api typecheck`
+Run: `pnpm --filter @payinparts/api test && pnpm --filter @payinparts/api typecheck`
 Expected: all PASS.
 
 - [ ] **Step 5: Commit**
@@ -1763,7 +1763,7 @@ git commit -m "feat(api): credit-check handler with decision metric"
 
 `services/api/test/prompt.test.ts`:
 ```ts
-import { calculatePlan, kr } from '@delbetala/core';
+import { calculatePlan, kr } from '@payinparts/core';
 import { describe, expect, it } from 'vitest';
 import { buildSystemPrompt, buildUserMessage } from '../src/ai/prompt';
 
@@ -1878,14 +1878,14 @@ describe('POST /api/orders/{id}/explain', () => {
 
 - [ ] **Step 3: Run tests to verify they fail**
 
-Run: `pnpm --filter @delbetala/api test -- prompt explain`
+Run: `pnpm --filter @payinparts/api test -- prompt explain`
 Expected: FAIL — cannot resolve `../src/ai/prompt` and `../src/handlers/explain-plan`.
 
 - [ ] **Step 4: Implement the prompt**
 
 `services/api/src/ai/prompt.ts`:
 ```ts
-import type { Lang, PaymentPlan } from '@delbetala/core';
+import type { Lang, PaymentPlan } from '@payinparts/core';
 
 export const MAX_AI_QUESTIONS = 20;
 
@@ -1981,7 +1981,7 @@ export async function askModel(system: string, userMessage: string): Promise<Mod
 `services/api/src/handlers/explain-plan.ts`:
 ```ts
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import { calculatePlan, ExplainRequest, PAYMENT_OPTIONS, type ExplainResponse } from '@delbetala/core';
+import { calculatePlan, ExplainRequest, PAYMENT_OPTIONS, type ExplainResponse } from '@payinparts/core';
 import { askModel, type ModelAnswer } from '../ai/bedrock';
 import { buildSystemPrompt, buildUserMessage, MAX_AI_QUESTIONS } from '../ai/prompt';
 import { getOrderMeta, incrementAiCount } from '../db';
@@ -2026,7 +2026,7 @@ export const handler = httpHandler(async (event) => {
 
 - [ ] **Step 7: Run all API tests and typecheck**
 
-Run: `pnpm --filter @delbetala/api test && pnpm --filter @delbetala/api typecheck && pnpm lint`
+Run: `pnpm --filter @payinparts/api test && pnpm --filter @payinparts/api typecheck && pnpm lint`
 Expected: all PASS.
 
 - [ ] **Step 8: Commit**
@@ -2042,23 +2042,23 @@ git commit -m "feat(api): AI explain-plan handler via Bedrock with limits"
 
 **Files:**
 - Create: `infra/package.json`, `infra/tsconfig.json`, `infra/vitest.config.ts`, `infra/cdk.json`
-- Create: `infra/lib/api.ts`, `infra/lib/delbetala-stack.ts`, `infra/bin/app.ts`
+- Create: `infra/lib/api.ts`, `infra/lib/payinparts-stack.ts`, `infra/bin/app.ts`
 - Create: `infra/test/fixtures/web/index.html`
-- Test: `infra/test/delbetala-stack.test.ts`
+- Test: `infra/test/payinparts-stack.test.ts`
 
 **Interfaces:**
 - Consumes: handler files from Tasks 5–8 at `services/api/src/handlers/{products,orders,credit-check,explain-plan}.ts`
 - Produces:
   - `class ApiConstruct` with `api: HttpApi` and `functions: { products, orders, creditCheck, explainPlan }: NodejsFunction`
-  - `interface DelbetalaStackProps extends StackProps { alertEmail: string; modelId: string; webAssetPath: string }`
-  - `class DelbetalaStack` (construct id for the API: `Api`; function ids: `Products`, `Orders`, `CreditCheck`, `ExplainPlan`)
+  - `interface PayInPartsStackProps extends StackProps { alertEmail: string; modelId: string; webAssetPath: string }`
+  - `class PayInPartsStack` (construct id for the API: `Api`; function ids: `Products`, `Orders`, `CreditCheck`, `ExplainPlan`)
 
 - [ ] **Step 1: Create the package**
 
 `infra/package.json`:
 ```json
 {
-  "name": "@delbetala/infra",
+  "name": "@payinparts/infra",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -2104,25 +2104,25 @@ export default defineConfig({ test: { testTimeout: 120_000 } });
 
 Run:
 ```bash
-pnpm --filter @delbetala/infra add aws-cdk-lib constructs
-pnpm --filter @delbetala/infra add -D aws-cdk tsx esbuild vitest typescript @types/node
+pnpm --filter @payinparts/infra add aws-cdk-lib constructs
+pnpm --filter @payinparts/infra add -D aws-cdk tsx esbuild vitest typescript @types/node
 ```
 
 - [ ] **Step 2: Write the failing test**
 
-`infra/test/delbetala-stack.test.ts`:
+`infra/test/payinparts-stack.test.ts`:
 ```ts
 import { App } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { DelbetalaStack } from '../lib/delbetala-stack';
+import { PayInPartsStack } from '../lib/payinparts-stack';
 
 let template: Template;
 
 beforeAll(() => {
   const app = new App();
-  const stack = new DelbetalaStack(app, 'Test', {
+  const stack = new PayInPartsStack(app, 'Test', {
     env: { account: '123456789012', region: 'eu-north-1' },
     alertEmail: 'test@example.com',
     modelId: 'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
@@ -2215,8 +2215,8 @@ describe('API', () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/infra test`
-Expected: FAIL — cannot resolve `../lib/delbetala-stack`.
+Run: `pnpm --filter @payinparts/infra test`
+Expected: FAIL — cannot resolve `../lib/payinparts-stack`.
 
 - [ ] **Step 4: Implement the API construct**
 
@@ -2263,7 +2263,7 @@ export class ApiConstruct extends Construct {
         environment: {
           TABLE_NAME: props.table.tableName,
           POWERTOOLS_SERVICE_NAME: file,
-          POWERTOOLS_METRICS_NAMESPACE: 'Delbetala',
+          POWERTOOLS_METRICS_NAMESPACE: 'PayInParts',
           NODE_OPTIONS: '--enable-source-maps',
           ...extraEnv,
         },
@@ -2293,7 +2293,7 @@ export class ApiConstruct extends Construct {
       }),
     );
 
-    this.api = new HttpApi(this, 'HttpApi', { apiName: 'delbetala' });
+    this.api = new HttpApi(this, 'HttpApi', { apiName: 'payinparts' });
     const integration = (fn: NodejsFunction) => new HttpLambdaIntegration(`${fn.node.id}Integration`, fn);
     const ordersIntegration = integration(orders);
 
@@ -2316,21 +2316,21 @@ export class ApiConstruct extends Construct {
 
 - [ ] **Step 5: Implement the stack and app**
 
-`infra/lib/delbetala-stack.ts`:
+`infra/lib/payinparts-stack.ts`:
 ```ts
 import { RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import type { Construct } from 'constructs';
 import { ApiConstruct } from './api';
 
-export interface DelbetalaStackProps extends StackProps {
+export interface PayInPartsStackProps extends StackProps {
   alertEmail: string;
   modelId: string;
   webAssetPath: string;
 }
 
-export class DelbetalaStack extends Stack {
-  constructor(scope: Construct, id: string, props: DelbetalaStackProps) {
+export class PayInPartsStack extends Stack {
+  constructor(scope: Construct, id: string, props: PayInPartsStackProps) {
     super(scope, id, props);
 
     const table = new dynamodb.Table(this, 'Table', {
@@ -2349,7 +2349,7 @@ export class DelbetalaStack extends Stack {
 ```ts
 import { App } from 'aws-cdk-lib';
 import { fileURLToPath } from 'node:url';
-import { DelbetalaStack } from '../lib/delbetala-stack';
+import { PayInPartsStack } from '../lib/payinparts-stack';
 
 const app = new App();
 
@@ -2363,7 +2363,7 @@ function requireContext(name: string): string {
 
 const env = { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'eu-north-1' };
 
-new DelbetalaStack(app, 'Delbetala', {
+new PayInPartsStack(app, 'PayInParts', {
   env,
   alertEmail: requireContext('alertEmail'),
   modelId: requireContext('modelId'),
@@ -2373,7 +2373,7 @@ new DelbetalaStack(app, 'Delbetala', {
 
 - [ ] **Step 6: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/infra test && pnpm --filter @delbetala/infra typecheck`
+Run: `pnpm --filter @payinparts/infra test && pnpm --filter @payinparts/infra typecheck`
 Expected: all PASS. (First run is slow because esbuild bundles four Lambdas.)
 
 - [ ] **Step 7: Commit**
@@ -2389,8 +2389,8 @@ git commit -m "feat(infra): CDK stack with table, Lambdas, HTTP API and least-pr
 
 **Files:**
 - Create: `infra/lib/web.ts`, `infra/lib/monitoring.ts`
-- Modify: `infra/lib/delbetala-stack.ts`
-- Test: `infra/test/delbetala-stack.test.ts` (add tests)
+- Modify: `infra/lib/payinparts-stack.ts`
+- Test: `infra/test/payinparts-stack.test.ts` (add tests)
 
 **Interfaces:**
 - Consumes: `ApiConstruct` (`api`, `functions`) from Task 9
@@ -2401,7 +2401,7 @@ git commit -m "feat(infra): CDK stack with table, Lambdas, HTTP API and least-pr
 
 - [ ] **Step 1: Add the failing tests**
 
-Append to `infra/test/delbetala-stack.test.ts`:
+Append to `infra/test/payinparts-stack.test.ts`:
 ```ts
 describe('web hosting', () => {
   it('keeps the site bucket private', () => {
@@ -2451,14 +2451,14 @@ describe('monitoring', () => {
   });
 
   it('has a dashboard', () => {
-    template.hasResourceProperties('AWS::CloudWatch::Dashboard', { DashboardName: 'Delbetala' });
+    template.hasResourceProperties('AWS::CloudWatch::Dashboard', { DashboardName: 'PayInParts' });
   });
 });
 ```
 
 - [ ] **Step 2: Run tests to verify the new ones fail**
 
-Run: `pnpm --filter @delbetala/infra test`
+Run: `pnpm --filter @payinparts/infra test`
 Expected: the new `web hosting` and `monitoring` tests FAIL; earlier tests still PASS.
 
 - [ ] **Step 3: Implement web hosting**
@@ -2555,7 +2555,7 @@ export interface MonitoringProps {
   alertEmail: string;
 }
 
-const NAMESPACE = 'Delbetala';
+const NAMESPACE = 'PayInParts';
 const period = Duration.minutes(5);
 
 const appMetric = (metricName: string, service: string, extra: Record<string, string> = {}, label?: string) =>
@@ -2591,7 +2591,7 @@ export class MonitoringConstruct extends Construct {
       })
       .addAlarmAction(notify);
 
-    const dashboard = new cw.Dashboard(this, 'Dashboard', { dashboardName: 'Delbetala' });
+    const dashboard = new cw.Dashboard(this, 'Dashboard', { dashboardName: 'PayInParts' });
     dashboard.addWidgets(
       new cw.GraphWidget({
         title: 'API requests and errors',
@@ -2626,7 +2626,7 @@ export class MonitoringConstruct extends Construct {
 
 - [ ] **Step 5: Wire into the stack**
 
-Replace `infra/lib/delbetala-stack.ts` with:
+Replace `infra/lib/payinparts-stack.ts` with:
 ```ts
 import { CfnOutput, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -2635,14 +2635,14 @@ import { ApiConstruct } from './api';
 import { MonitoringConstruct } from './monitoring';
 import { WebConstruct } from './web';
 
-export interface DelbetalaStackProps extends StackProps {
+export interface PayInPartsStackProps extends StackProps {
   alertEmail: string;
   modelId: string;
   webAssetPath: string;
 }
 
-export class DelbetalaStack extends Stack {
-  constructor(scope: Construct, id: string, props: DelbetalaStackProps) {
+export class PayInPartsStack extends Stack {
+  constructor(scope: Construct, id: string, props: PayInPartsStackProps) {
     super(scope, id, props);
 
     const table = new dynamodb.Table(this, 'Table', {
@@ -2663,7 +2663,7 @@ export class DelbetalaStack extends Stack {
 
 - [ ] **Step 6: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/infra test && pnpm --filter @delbetala/infra typecheck`
+Run: `pnpm --filter @payinparts/infra test && pnpm --filter @payinparts/infra typecheck`
 Expected: all PASS.
 
 - [ ] **Step 7: Commit**
@@ -2683,7 +2683,7 @@ git commit -m "feat(infra): CloudFront + S3 hosting and CloudWatch monitoring"
 - Test: `infra/test/github-oidc-stack.test.ts`
 
 **Interfaces:**
-- Produces: IAM roles `delbetala-github-deploy` (trusted only for `repo:<owner>/<repo>:ref:refs/heads/main`) and `delbetala-github-diff` (trusted only for `repo:<owner>/<repo>:pull_request`). Used by Task 16 workflows.
+- Produces: IAM roles `payinparts-github-deploy` (trusted only for `repo:<owner>/<repo>:ref:refs/heads/main`) and `payinparts-github-diff` (trusted only for `repo:<owner>/<repo>:pull_request`). Used by Task 16 workflows.
 - CDK context: `githubRepo` (format `owner/repo`).
 
 - [ ] **Step 1: Write the failing test**
@@ -2718,14 +2718,14 @@ const trustFor = (sub: string) => ({
 describe('GitHub OIDC', () => {
   it('deploy role trusts only the main branch', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
-      RoleName: 'delbetala-github-deploy',
+      RoleName: 'payinparts-github-deploy',
       ...trustFor('repo:acme/resurs-demo:ref:refs/heads/main'),
     });
   });
 
   it('diff role trusts only pull requests', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
-      RoleName: 'delbetala-github-diff',
+      RoleName: 'payinparts-github-diff',
       ...trustFor('repo:acme/resurs-demo:pull_request'),
     });
   });
@@ -2746,7 +2746,7 @@ describe('GitHub OIDC', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/infra test -- github`
+Run: `pnpm --filter @payinparts/infra test -- github`
 Expected: FAIL — cannot resolve `../lib/github-oidc-stack`.
 
 - [ ] **Step 3: Implement**
@@ -2783,7 +2783,7 @@ export class GithubOidcStack extends Stack {
 
     // Deploy: may only hop into the CDK bootstrap roles (deploy, file publishing, lookup)
     const deployRole = new iam.Role(this, 'GithubDeployRole', {
-      roleName: 'delbetala-github-deploy',
+      roleName: 'payinparts-github-deploy',
       assumedBy: trust(`repo:${props.githubRepo}:ref:refs/heads/main`),
       maxSessionDuration: Duration.hours(1),
     });
@@ -2796,7 +2796,7 @@ export class GithubOidcStack extends Stack {
 
     // PR diff: read-only lookup role only
     const diffRole = new iam.Role(this, 'GithubDiffRole', {
-      roleName: 'delbetala-github-diff',
+      roleName: 'payinparts-github-diff',
       assumedBy: trust(`repo:${props.githubRepo}:pull_request`),
       maxSessionDuration: Duration.hours(1),
     });
@@ -2814,7 +2814,7 @@ Replace `infra/bin/app.ts` with:
 ```ts
 import { App } from 'aws-cdk-lib';
 import { fileURLToPath } from 'node:url';
-import { DelbetalaStack } from '../lib/delbetala-stack';
+import { PayInPartsStack } from '../lib/payinparts-stack';
 import { GithubOidcStack } from '../lib/github-oidc-stack';
 
 const app = new App();
@@ -2829,19 +2829,19 @@ function requireContext(name: string): string {
 
 const env = { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'eu-north-1' };
 
-new DelbetalaStack(app, 'Delbetala', {
+new PayInPartsStack(app, 'PayInParts', {
   env,
   alertEmail: requireContext('alertEmail'),
   modelId: requireContext('modelId'),
   webAssetPath: fileURLToPath(new URL('../../apps/web/dist', import.meta.url)),
 });
 
-new GithubOidcStack(app, 'DelbetalaGithubOidc', { env, githubRepo: requireContext('githubRepo') });
+new GithubOidcStack(app, 'PayInPartsGithubOidc', { env, githubRepo: requireContext('githubRepo') });
 ```
 
 - [ ] **Step 4: Run tests and typecheck**
 
-Run: `pnpm --filter @delbetala/infra test && pnpm --filter @delbetala/infra typecheck`
+Run: `pnpm --filter @payinparts/infra test && pnpm --filter @payinparts/infra typecheck`
 Expected: all PASS.
 
 - [ ] **Step 5: Commit**
@@ -2875,7 +2875,7 @@ git commit -m "feat(infra): GitHub OIDC roles for keyless CI deploys"
 `apps/web/package.json`:
 ```json
 {
-  "name": "@delbetala/web",
+  "name": "@payinparts/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -2923,7 +2923,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Delbetala — demo</title>
+    <title>PayInParts — demo</title>
   </head>
   <body>
     <div id="root"></div>
@@ -2934,8 +2934,8 @@ export default defineConfig({
 
 Run:
 ```bash
-pnpm --filter @delbetala/web add @delbetala/core@workspace:* react react-dom react-router
-pnpm --filter @delbetala/web add -D vite @vitejs/plugin-react vitest jsdom @testing-library/react @testing-library/dom @types/react @types/react-dom @types/node typescript
+pnpm --filter @payinparts/web add @payinparts/core@workspace:* react react-dom react-router
+pnpm --filter @payinparts/web add -D vite @vitejs/plugin-react vitest jsdom @testing-library/react @testing-library/dom @types/react @types/react-dom @types/node typescript
 ```
 
 - [ ] **Step 2: Write the failing API client test**
@@ -2983,7 +2983,7 @@ describe('api client', () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/web test`
+Run: `pnpm --filter @payinparts/web test`
 Expected: FAIL — cannot resolve `./api`.
 
 - [ ] **Step 4: Implement the API client**
@@ -2999,7 +2999,7 @@ import type {
   Order,
   Product,
   StoredDecision,
-} from '@delbetala/core';
+} from '@payinparts/core';
 
 export class ApiRequestError extends Error {
   constructor(
@@ -3045,7 +3045,7 @@ export const api = {
 `apps/web/src/messages.ts`:
 ```ts
 export const en = {
-  appName: 'Delbetala',
+  appName: 'PayInParts',
   switchLanguage: 'Svenska',
   demoBanner: 'Demo — no real payments. Nothing is charged and all data is fake.',
   shopTitle: 'Shop',
@@ -3106,7 +3106,7 @@ export const en = {
 export type MessageKey = keyof typeof en;
 
 export const sv: Record<MessageKey, string> = {
-  appName: 'Delbetala',
+  appName: 'PayInParts',
   switchLanguage: 'English',
   demoBanner: 'Demo — inga riktiga betalningar. Inget dras och all data är påhittad.',
   shopTitle: 'Butik',
@@ -3167,7 +3167,7 @@ export const sv: Record<MessageKey, string> = {
 
 `apps/web/src/i18n.tsx`:
 ```tsx
-import type { Lang } from '@delbetala/core';
+import type { Lang } from '@payinparts/core';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { en, sv, type MessageKey } from './messages';
 
@@ -3258,7 +3258,7 @@ export function Layout() {
 
 `apps/web/src/pages/ShopPage.tsx`:
 ```tsx
-import { formatKr, type Product } from '@delbetala/core';
+import { formatKr, type Product } from '@payinparts/core';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { api } from '../api';
@@ -3418,7 +3418,7 @@ input, select { font-size: 1rem; padding: 8px 10px; border: 1px solid #ccc; bord
 
 - [ ] **Step 7: Run tests, typecheck, build**
 
-Run: `pnpm --filter @delbetala/web test && pnpm --filter @delbetala/web build && pnpm lint`
+Run: `pnpm --filter @payinparts/web test && pnpm --filter @payinparts/web build && pnpm lint`
 Expected: 3 tests PASS; `apps/web/dist/index.html` exists.
 
 - [ ] **Step 8: Commit**
@@ -3445,7 +3445,7 @@ git commit -m "feat(web): scaffold with i18n, API client, layout and shop page"
 
 `apps/web/src/components/PlanTable.test.tsx`:
 ```tsx
-import { calculatePlan, formatKr, kr } from '@delbetala/core';
+import { calculatePlan, formatKr, kr } from '@payinparts/core';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { I18nProvider } from '../i18n';
@@ -3479,14 +3479,14 @@ describe('PlanTable', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/web test`
+Run: `pnpm --filter @payinparts/web test`
 Expected: FAIL — cannot resolve `./PlanTable`.
 
 - [ ] **Step 3: Implement PlanTable**
 
 `apps/web/src/components/PlanTable.tsx`:
 ```tsx
-import { formatKr, type PaymentPlan } from '@delbetala/core';
+import { formatKr, type PaymentPlan } from '@payinparts/core';
 import { useI18n } from '../i18n';
 
 export function PlanTable({ plan }: { plan: PaymentPlan }) {
@@ -3542,7 +3542,7 @@ export function PlanTable({ plan }: { plan: PaymentPlan }) {
 
 Replace `apps/web/src/pages/CheckoutPage.tsx`:
 ```tsx
-import { calculatePlan, findProduct, formatKr, PAYMENT_OPTIONS, type PaymentOption } from '@delbetala/core';
+import { calculatePlan, findProduct, formatKr, PAYMENT_OPTIONS, type PaymentOption } from '@payinparts/core';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { api } from '../api';
@@ -3607,7 +3607,7 @@ export function CheckoutPage() {
 
 - [ ] **Step 5: Run tests, typecheck, build**
 
-Run: `pnpm --filter @delbetala/web test && pnpm --filter @delbetala/web build`
+Run: `pnpm --filter @payinparts/web test && pnpm --filter @payinparts/web build`
 Expected: all PASS.
 
 - [ ] **Step 6: Commit**
@@ -3637,7 +3637,7 @@ git commit -m "feat(web): checkout page with live plan preview"
 
 `apps/web/src/components/DecisionMessage.test.tsx`:
 ```tsx
-import { kr, RULES_VERSION, type StoredDecision } from '@delbetala/core';
+import { kr, RULES_VERSION, type StoredDecision } from '@payinparts/core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n';
@@ -3686,14 +3686,14 @@ describe('DecisionMessage', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @delbetala/web test`
+Run: `pnpm --filter @payinparts/web test`
 Expected: FAIL — cannot resolve `./DecisionMessage`.
 
 - [ ] **Step 3: Implement the components**
 
 `apps/web/src/components/DecisionMessage.tsx`:
 ```tsx
-import { formatKr, type PaymentOption, type StoredDecision } from '@delbetala/core';
+import { formatKr, type PaymentOption, type StoredDecision } from '@payinparts/core';
 import { useI18n } from '../i18n';
 
 export function DecisionMessage({
@@ -3746,7 +3746,7 @@ export function DecisionMessage({
 
 `apps/web/src/components/CreditCheckForm.tsx`:
 ```tsx
-import { findPersona, PERSONAS, type CreditCheckInput } from '@delbetala/core';
+import { findPersona, PERSONAS, type CreditCheckInput } from '@payinparts/core';
 import { useState } from 'react';
 import { useI18n } from '../i18n';
 
@@ -3889,7 +3889,7 @@ export function ExplainPanel({ orderId }: { orderId: string }) {
 
 Replace `apps/web/src/pages/OrderPage.tsx`:
 ```tsx
-import { needsCreditCheck, type Order, type PaymentOption } from '@delbetala/core';
+import { needsCreditCheck, type Order, type PaymentOption } from '@payinparts/core';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api, ApiRequestError } from '../api';
@@ -3988,7 +3988,7 @@ export function OrderPage() {
 
 - [ ] **Step 5: Run tests, typecheck, build, lint**
 
-Run: `pnpm --filter @delbetala/web test && pnpm --filter @delbetala/web build && pnpm lint`
+Run: `pnpm --filter @payinparts/web test && pnpm --filter @payinparts/web build && pnpm lint`
 Expected: all PASS.
 
 - [ ] **Step 6: Commit**
@@ -4021,8 +4021,8 @@ This task has **👤 human steps** (console clicks, email confirmation). The age
 - [ ] **Step 2: 👤 Log in from the laptop with short-lived credentials**
 
 ```bash
-aws configure sso --profile delbetala   # SSO start URL is on the Identity Center dashboard; region eu-north-1
-export AWS_PROFILE=delbetala
+aws configure sso --profile payinparts   # SSO start URL is on the Identity Center dashboard; region eu-north-1
+export AWS_PROFILE=payinparts
 aws sso login
 aws sts get-caller-identity             # should show your SSO role, not root
 ```
@@ -4039,13 +4039,13 @@ aws bedrock-runtime converse --region eu-north-1 \
   --model-id eu.anthropic.claude-haiku-4-5-20251001-v1:0 \
   --messages '[{"role":"user","content":[{"text":"Säg hej"}]}]'
 ```
-Expected: the list contains `eu.anthropic.claude-haiku-4-5-20251001-v1:0` and `converse` returns a short answer. If the ID differs, update `modelId` in `infra/cdk.json` and the expected IDs in `infra/test/delbetala-stack.test.ts`, then re-run `pnpm --filter @delbetala/infra test`.
+Expected: the list contains `eu.anthropic.claude-haiku-4-5-20251001-v1:0` and `converse` returns a short answer. If the ID differs, update `modelId` in `infra/cdk.json` and the expected IDs in `infra/test/payinparts-stack.test.ts`, then re-run `pnpm --filter @payinparts/infra test`.
 
 - [ ] **Step 4: Bootstrap CDK**
 
 ```bash
 ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-pnpm --filter @delbetala/infra exec cdk bootstrap aws://$ACCOUNT/eu-north-1
+pnpm --filter @payinparts/infra exec cdk bootstrap aws://$ACCOUNT/eu-north-1
 ```
 Expected: `Environment aws://…/eu-north-1 bootstrapped.`
 
@@ -4088,12 +4088,12 @@ Run: `chmod +x scripts/smoke.sh`
 - [ ] **Step 6: First deploy of the app stack**
 
 ```bash
-pnpm --filter @delbetala/web build
-pnpm --filter @delbetala/infra exec cdk deploy Delbetala \
+pnpm --filter @payinparts/web build
+pnpm --filter @payinparts/infra exec cdk deploy PayInParts \
   -c alertEmail=<your-email> -c githubRepo=<github-user>/resurs-demo \
   --outputs-file cdk-outputs.json
 ```
-Expected: deploy succeeds and prints `Delbetala.SiteUrl = https://xxxx.cloudfront.net`.
+Expected: deploy succeeds and prints `PayInParts.SiteUrl = https://xxxx.cloudfront.net`.
 
 - [ ] **Step 7: 👤 Confirm the SNS email**
 
@@ -4102,13 +4102,13 @@ Open the "AWS Notification — Subscription Confirmation" email and click **Conf
 - [ ] **Step 8: Run the smoke test**
 
 ```bash
-scripts/smoke.sh "$(jq -r '.Delbetala.SiteUrl' infra/cdk-outputs.json)"
+scripts/smoke.sh "$(jq -r '.PayInParts.SiteUrl' infra/cdk-outputs.json)"
 ```
 Expected: every line `ok`, then `Smoke test passed`.
 
 - [ ] **Step 9: 👤 Try the full flow by hand**
 
-Open the site URL. Buy headphones → split into 3 → Anna → approved → "Explain my plan" (real Bedrock answer) → confirm. Open the **Delbetala** CloudWatch dashboard and check requests and the credit decision appear.
+Open the site URL. Buy headphones → split into 3 → Anna → approved → "Explain my plan" (real Bedrock answer) → confirm. Open the **PayInParts** CloudWatch dashboard and check requests and the credit decision appear.
 
 - [ ] **Step 10: Commit**
 
@@ -4126,7 +4126,7 @@ git commit -m "chore: add deployed-site smoke test"
 - Create: `.github/workflows/pr.yml`, `.github/workflows/deploy.yml`
 
 **Interfaces:**
-- Consumes: IAM roles `delbetala-github-deploy` and `delbetala-github-diff` (Task 11), `scripts/smoke.sh` (Task 15), `SiteUrl` output
+- Consumes: IAM roles `payinparts-github-deploy` and `payinparts-github-diff` (Task 11), `scripts/smoke.sh` (Task 15), `SiteUrl` output
 - GitHub repo **variables** (not secrets): `AWS_ACCOUNT_ID`, `ALERT_EMAIL`
 
 - [ ] **Step 1: Create the e2e package**
@@ -4134,7 +4134,7 @@ git commit -m "chore: add deployed-site smoke test"
 `e2e/package.json`:
 ```json
 {
-  "name": "@delbetala/e2e",
+  "name": "@payinparts/e2e",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -4172,8 +4172,8 @@ export default defineConfig({
 
 Run:
 ```bash
-pnpm --filter @delbetala/e2e add -D @playwright/test typescript @types/node
-pnpm --filter @delbetala/e2e exec playwright install chromium
+pnpm --filter @payinparts/e2e add -D @playwright/test typescript @types/node
+pnpm --filter @payinparts/e2e exec playwright install chromium
 ```
 
 - [ ] **Step 2: Write the e2e test**
@@ -4225,7 +4225,7 @@ test('unknown order shows a friendly message', async ({ page }) => {
 - [ ] **Step 3: Run e2e against the live site**
 
 ```bash
-BASE_URL="$(jq -r '.Delbetala.SiteUrl' infra/cdk-outputs.json)" pnpm --filter @delbetala/e2e e2e
+BASE_URL="$(jq -r '.PayInParts.SiteUrl' infra/cdk-outputs.json)" pnpm --filter @payinparts/e2e e2e
 ```
 Expected: 3 tests PASS.
 
@@ -4255,18 +4255,18 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm --filter @delbetala/web build
+      - run: pnpm --filter @payinparts/web build
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/delbetala-github-diff
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/payinparts-github-diff
           aws-region: eu-north-1
 
       - name: cdk diff
         shell: bash
         working-directory: infra
         run: |
-          pnpm exec cdk diff Delbetala --no-change-set \
+          pnpm exec cdk diff PayInParts --no-change-set \
             -c alertEmail=${{ vars.ALERT_EMAIL }} -c githubRepo=${{ github.repository }} 2>&1 | tee diff.txt
           { echo '### cdk diff'; echo '```'; cat diff.txt; echo '```'; } > diff.md
 
@@ -4303,28 +4303,28 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm --filter @delbetala/web build
+      - run: pnpm --filter @payinparts/web build
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/delbetala-github-deploy
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/payinparts-github-deploy
           aws-region: eu-north-1
 
       - name: cdk deploy
         working-directory: infra
         run: |
-          pnpm exec cdk deploy Delbetala --require-approval never \
+          pnpm exec cdk deploy PayInParts --require-approval never \
             -c alertEmail=${{ vars.ALERT_EMAIL }} -c githubRepo=${{ github.repository }} \
             --outputs-file cdk-outputs.json
-          echo "SITE_URL=$(jq -r '.Delbetala.SiteUrl' cdk-outputs.json)" >> "$GITHUB_ENV"
+          echo "SITE_URL=$(jq -r '.PayInParts.SiteUrl' cdk-outputs.json)" >> "$GITHUB_ENV"
 
       - name: Smoke test
         run: scripts/smoke.sh "$SITE_URL"
 
       - name: End-to-end test
         run: |
-          pnpm --filter @delbetala/e2e exec playwright install --with-deps chromium
-          BASE_URL="$SITE_URL" pnpm --filter @delbetala/e2e e2e
+          pnpm --filter @payinparts/e2e exec playwright install --with-deps chromium
+          BASE_URL="$SITE_URL" pnpm --filter @payinparts/e2e e2e
 ```
 
 - [ ] **Step 6: 👤 Create the GitHub repo and deploy the OIDC stack**
@@ -4332,7 +4332,7 @@ jobs:
 This publishes the code to GitHub, so the user chooses private or public.
 ```bash
 gh repo create resurs-demo --private --source . --remote origin
-pnpm --filter @delbetala/infra exec cdk deploy DelbetalaGithubOidc \
+pnpm --filter @payinparts/infra exec cdk deploy PayInPartsGithubOidc \
   -c alertEmail=<your-email> -c githubRepo=<github-user>/resurs-demo
 gh variable set AWS_ACCOUNT_ID --body "$(aws sts get-caller-identity --query Account --output text)"
 gh variable set ALERT_EMAIL --body "<your-email>"
@@ -4363,7 +4363,7 @@ Expected: the **Deploy** workflow passes (tests, deploy, smoke, e2e). Then open 
 
 `README.md`:
 ````markdown
-# Delbetala
+# PayInParts
 
 A demo **pay-later checkout** with an **AI helper that explains the payment plan**.
 Built on AWS serverless in TypeScript.
@@ -4404,7 +4404,7 @@ Browser ─► CloudFront ─┬─► S3 (React app)
 ```bash
 pnpm install
 pnpm test            # unit + API + CDK tests
-VITE_API_PROXY=https://<site>.cloudfront.net pnpm --filter @delbetala/web dev
+VITE_API_PROXY=https://<site>.cloudfront.net pnpm --filter @payinparts/web dev
 ```
 
 ## Deploy
@@ -4413,9 +4413,9 @@ Merging to `main` deploys via GitHub Actions (OIDC, no stored keys).
 Manual deploy:
 
 ```bash
-aws sso login --profile delbetala
-pnpm --filter @delbetala/web build
-pnpm --filter @delbetala/infra exec cdk deploy Delbetala -c alertEmail=<email> -c githubRepo=<owner>/resurs-demo
+aws sso login --profile payinparts
+pnpm --filter @payinparts/web build
+pnpm --filter @payinparts/infra exec cdk deploy PayInParts -c alertEmail=<email> -c githubRepo=<owner>/resurs-demo
 ```
 
 First-time AWS account setup is in `docs/superpowers/plans/2026-09-30-delbetala.md`, Task 15.
@@ -4492,7 +4492,7 @@ See `docs/superpowers/` and `CLAUDE.md`.
 
 **Decision:** No long-lived keys anywhere.
 - Laptop: IAM Identity Center + `aws sso login` (short-lived credentials).
-- GitHub Actions: OIDC → `delbetala-github-deploy`, trusted only for this repo's `main` branch. PRs get a read-only diff role.
+- GitHub Actions: OIDC → `payinparts-github-deploy`, trusted only for this repo's `main` branch. PRs get a read-only diff role.
 - CI roles may only assume the CDK bootstrap roles.
 - Lambdas: one execution role each. Bedrock uses the role too, so there is no API key to store.
 

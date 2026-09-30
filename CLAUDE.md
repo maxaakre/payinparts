@@ -1,4 +1,4 @@
-# Delbetala — project notes for AI agents
+# PayInParts — project notes for AI agents
 
 Demo pay-later checkout for a Resurs technical interview. **No real money, no real personal data.**
 
@@ -20,4 +20,4 @@ Demo pay-later checkout for a Resurs technical interview. **No real money, no re
 ## Commands
 - `pnpm test` — all unit tests
 - `pnpm typecheck` / `pnpm lint`
-- `pnpm --filter @delbetala/web dev` — frontend (set `VITE_API_PROXY` to the deployed URL)
+- `pnpm --filter @payinparts/web dev` — frontend (set `VITE_API_PROXY` to the deployed URL)

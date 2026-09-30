@@ -1,4 +1,4 @@
-# Delbetala — Design Spec
+# PayInParts — Design Spec
 
 **Date:** 2026-09-30
 **Author:** Max Aakre
