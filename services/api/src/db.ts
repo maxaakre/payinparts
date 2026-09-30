@@ -105,3 +105,24 @@ export async function incrementAiCount(orderId: string, max: number): Promise<nu
     throw err;
   }
 }
+
+/** Global daily AI budget (UTC day). Returns the new count, or undefined when the cap is reached. */
+export async function incrementDailyAiCount(max: number, now = new Date()): Promise<number | undefined> {
+  try {
+    const res = await doc.send(
+      new UpdateCommand({
+        TableName: tableName(),
+        Key: { PK: `AI#DAY#${now.toISOString().slice(0, 10)}`, SK: 'COUNT' },
+        UpdateExpression: 'ADD #count :one',
+        ConditionExpression: 'attribute_not_exists(#count) OR #count < :max',
+        ExpressionAttributeNames: { '#count': 'count' },
+        ExpressionAttributeValues: { ':one': 1, ':max': max },
+        ReturnValues: 'UPDATED_NEW',
+      }),
+    );
+    return Number(res.Attributes?.count ?? max);
+  } catch (err) {
+    if (isConditionalFailure(err)) return undefined;
+    throw err;
+  }
+}

@@ -31,6 +31,7 @@ describe('POST /api/orders/{id}/explain', () => {
     const res = await ask({ question: 'Förklara planen', language: 'sv' });
 
     expect(res).toEqual({ status: 200, body: { answer: 'Du betalar 859 kr i månaden.', questionsLeft: 19 } });
+    expect(ddb.commandCalls(UpdateCommand)).toHaveLength(2); // per-order and global daily counters
     const input = bedrock.commandCalls(ConverseCommand)[0]!.args[0].input;
     expect(input.modelId).toBe('test-model');
     expect(input.inferenceConfig?.maxTokens).toBe(400);
@@ -51,6 +52,21 @@ describe('POST /api/orders/{id}/explain', () => {
     const res = await ask({ question: 'Hi', language: 'en' });
     expect(res.status).toBe(429);
     expect(res.body.error.code).toBe('RATE_LIMITED');
+    expect(bedrock.commandCalls(ConverseCommand)).toHaveLength(0);
+  });
+
+  it('returns 429 and skips the model when the global daily cap is reached', async () => {
+    ddb.on(GetCommand).resolves({ Item: orderItem() });
+    ddb.on(UpdateCommand).callsFake((input) => {
+      if (/^AI#DAY#\d{4}-\d{2}-\d{2}$/.test(input.Key.PK) && input.Key.SK === 'COUNT') {
+        throw new ConditionalCheckFailedException({ message: 'cap', $metadata: {} });
+      }
+      return { Attributes: { count: 1 } };
+    });
+    const res = await ask({ question: 'Hi', language: 'en' });
+    expect(res.status).toBe(429);
+    expect(res.body.error.code).toBe('RATE_LIMITED');
+    expect(res.body.error.message).toContain('daily limit');
     expect(bedrock.commandCalls(ConverseCommand)).toHaveLength(0);
   });
 

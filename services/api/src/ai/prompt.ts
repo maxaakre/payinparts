@@ -1,6 +1,7 @@
 import type { Lang, PaymentPlan } from '@payinparts/core';
 
 export const MAX_AI_QUESTIONS = 20;
+export const MAX_AI_QUESTIONS_PER_DAY = 500;
 
 export function buildSystemPrompt(lang: Lang): string {
   return [

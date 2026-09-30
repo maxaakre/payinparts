@@ -46,19 +46,48 @@ describe('least-privilege IAM', () => {
   });
 
   it('products has no DynamoDB access', () => {
-    expect(policiesFor('ApiProducts').join()).not.toContain('dynamodb:');
+    const docs = policiesFor('ApiProducts');
+    expect(docs.length).toBeGreaterThan(0);
+    expect(docs.join()).not.toContain('dynamodb:');
+  });
+
+  it('orders can put, query and update but not get', () => {
+    const docs = policiesFor('ApiOrders');
+    expect(docs.length).toBeGreaterThan(0);
+    const doc = docs.join();
+    for (const action of ['PutItem', 'Query', 'UpdateItem']) expect(doc).toContain(`dynamodb:${action}`);
+    expect(doc).not.toContain('dynamodb:GetItem');
+    expect(doc).not.toContain('dynamodb:*');
+    expect(doc).not.toContain('dynamodb:Scan');
+  });
+
+  it('explain-plan can only get and update', () => {
+    const docs = policiesFor('ApiExplainPlan');
+    expect(docs.length).toBeGreaterThan(0);
+    const doc = docs.join();
+    expect(doc).toContain('dynamodb:GetItem');
+    expect(doc).toContain('dynamodb:UpdateItem');
+    expect(doc).not.toContain('dynamodb:PutItem');
+    expect(doc).not.toContain('dynamodb:*');
+    expect(doc).not.toContain('dynamodb:Scan');
   });
 
   it('credit-check can only read and put', () => {
-    const doc = policiesFor('ApiCreditCheck').join();
+    const docs = policiesFor('ApiCreditCheck');
+    expect(docs.length).toBeGreaterThan(0);
+    const doc = docs.join();
     expect(doc).toContain('dynamodb:GetItem');
     expect(doc).toContain('dynamodb:PutItem');
     expect(doc).not.toContain('dynamodb:UpdateItem');
     expect(doc).not.toContain('dynamodb:DeleteItem');
+    expect(doc).not.toContain('dynamodb:*');
+    expect(doc).not.toContain('dynamodb:Scan');
   });
 
   it('no app function can delete data', () => {
-    expect(policiesFor('Api').join()).not.toContain('dynamodb:DeleteItem');
+    const docs = policiesFor('Api');
+    expect(docs.length).toBeGreaterThan(0);
+    for (const action of ['DeleteItem', '*', 'Scan']) expect(docs.join()).not.toContain(`dynamodb:${action}`);
   });
 });
 
@@ -80,7 +109,7 @@ describe('API', () => {
     template.hasResourceProperties('AWS::ApiGatewayV2::Stage', {
       DefaultRouteSettings: { ThrottlingRateLimit: 20, ThrottlingBurstLimit: 40 },
       RouteSettings: Match.objectLike({
-        'POST /api/orders/{id}/explain': { ThrottlingRateLimit: 2, ThrottlingBurstLimit: 5 },
+        'POST /api/orders/{id}/explain': { ThrottlingRateLimit: 1, ThrottlingBurstLimit: 2 },
       }),
     });
   });
@@ -142,7 +171,20 @@ describe('monitoring', () => {
 
   it('has an error alarm per function and an API 5xx alarm', () => {
     const alarms = Object.values(template.findResources('AWS::CloudWatch::Alarm'));
-    expect(alarms.length).toBeGreaterThanOrEqual(5);
+    expect(alarms.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('alarms when AI usage spikes within an hour', () => {
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      Namespace: 'PayInParts',
+      MetricName: 'AiQuestions',
+      Dimensions: [{ Name: 'service', Value: 'explain-plan' }],
+      Statistic: 'Sum',
+      Period: 3600,
+      Threshold: 200,
+      ComparisonOperator: 'GreaterThanThreshold',
+      AlarmActions: Match.anyValue(),
+    });
   });
 
   it('has a dashboard', () => {

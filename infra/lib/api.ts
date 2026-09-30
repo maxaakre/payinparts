@@ -53,7 +53,7 @@ export class ApiConstruct extends Construct {
     this.functions = { products, orders, creditCheck, explainPlan };
 
     // Least privilege: each function gets only the table actions it uses
-    props.table.grant(orders, 'dynamodb:PutItem', 'dynamodb:GetItem', 'dynamodb:Query', 'dynamodb:UpdateItem');
+    props.table.grant(orders, 'dynamodb:PutItem', 'dynamodb:Query', 'dynamodb:UpdateItem');
     props.table.grant(creditCheck, 'dynamodb:GetItem', 'dynamodb:PutItem');
     props.table.grant(explainPlan, 'dynamodb:GetItem', 'dynamodb:UpdateItem');
 
@@ -84,7 +84,7 @@ export class ApiConstruct extends Construct {
     const stage = this.api.defaultStage!.node.defaultChild as CfnStage;
     stage.defaultRouteSettings = { throttlingRateLimit: 20, throttlingBurstLimit: 40 };
     stage.routeSettings = {
-      'POST /api/orders/{id}/explain': { ThrottlingRateLimit: 2, ThrottlingBurstLimit: 5 },
+      'POST /api/orders/{id}/explain': { ThrottlingRateLimit: 1, ThrottlingBurstLimit: 2 },
     };
   }
 }

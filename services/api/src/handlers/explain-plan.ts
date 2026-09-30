@@ -1,8 +1,8 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { calculatePlan, ExplainRequest, PAYMENT_OPTIONS, type ExplainResponse } from '@payinparts/core';
 import { askModel, type ModelAnswer } from '../ai/bedrock';
-import { buildSystemPrompt, buildUserMessage, MAX_AI_QUESTIONS } from '../ai/prompt';
-import { getOrderMeta, incrementAiCount } from '../db';
+import { buildSystemPrompt, buildUserMessage, MAX_AI_QUESTIONS, MAX_AI_QUESTIONS_PER_DAY } from '../ai/prompt';
+import { getOrderMeta, incrementAiCount, incrementDailyAiCount } from '../db';
 import { HttpError, httpHandler, logger, metrics, ok, parseBody, pathId } from '../http';
 
 export const handler = httpHandler(async (event) => {
@@ -15,6 +15,11 @@ export const handler = httpHandler(async (event) => {
   const count = await incrementAiCount(id, MAX_AI_QUESTIONS);
   if (count === undefined) {
     throw new HttpError(429, 'RATE_LIMITED', 'You have used all questions for this order.');
+  }
+
+  // Global spend cap, checked after the per-order limit so one abuser cannot burn the budget on a full order
+  if ((await incrementDailyAiCount(MAX_AI_QUESTIONS_PER_DAY)) === undefined) {
+    throw new HttpError(429, 'RATE_LIMITED', 'The AI helper has reached its daily limit. Please try again tomorrow.');
   }
 
   // The AI compares; it never calculates. We compute every alternative here.

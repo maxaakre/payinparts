@@ -34,7 +34,8 @@ export class MonitoringConstruct extends Construct {
           threshold: 1,
           evaluationPeriods: 1,
           treatMissingData: cw.TreatMissingData.NOT_BREACHING,
-          alarmDescription: `${name} Lambda is throwing errors`,
+          // httpHandler turns app errors into 500 responses, so this only catches timeouts, init failures and OOM
+        alarmDescription: `${name} Lambda timeouts, init failures or OOM (app errors show up in the API 5xx alarm)`,
         })
         .addAlarmAction(notify);
     }
@@ -46,6 +47,23 @@ export class MonitoringConstruct extends Construct {
         evaluationPeriods: 1,
         treatMissingData: cw.TreatMissingData.NOT_BREACHING,
         alarmDescription: 'API is returning 5xx errors',
+      })
+      .addAlarmAction(notify);
+
+    // Spend guard: the daily cap is 500 questions, so 200 in an hour is unusual
+    new cw.Metric({
+      namespace: NAMESPACE,
+      metricName: 'AiQuestions',
+      dimensionsMap: { service: 'explain-plan' },
+      statistic: 'Sum',
+      period: Duration.hours(1),
+    })
+      .createAlarm(this, 'AiQuestionsHigh', {
+        threshold: 200,
+        comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        evaluationPeriods: 1,
+        treatMissingData: cw.TreatMissingData.NOT_BREACHING,
+        alarmDescription: 'More than 200 AI questions in one hour',
       })
       .addAlarmAction(notify);
 
