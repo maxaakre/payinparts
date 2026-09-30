@@ -26,7 +26,9 @@ export class GithubOidcStack extends Stack {
         },
       });
 
-    // Deploy: may only hop into the CDK bootstrap roles (deploy, file publishing, lookup)
+    const bootstrapRoleArn = (name: string) => `arn:aws:iam::${account}:role/cdk-hnb659fds-${name}-${account}-${region}`;
+
+    // Deploy: may only hop into the four CDK bootstrap roles (deploy, file publishing, image publishing, lookup)
     const deployRole = new iam.Role(this, 'GithubDeployRole', {
       roleName: 'payinparts-github-deploy',
       assumedBy: trust(`repo:${props.githubRepo}:ref:refs/heads/main`),
@@ -35,7 +37,7 @@ export class GithubOidcStack extends Stack {
     deployRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ['sts:AssumeRole'],
-        resources: [`arn:aws:iam::${account}:role/cdk-hnb659fds-*-${account}-${region}`],
+        resources: ['deploy-role', 'file-publishing-role', 'image-publishing-role', 'lookup-role'].map(bootstrapRoleArn),
       }),
     );
 
@@ -48,7 +50,7 @@ export class GithubOidcStack extends Stack {
     diffRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ['sts:AssumeRole'],
-        resources: [`arn:aws:iam::${account}:role/cdk-hnb659fds-lookup-role-${account}-${region}`],
+        resources: [bootstrapRoleArn('lookup-role')],
       }),
     );
   }
