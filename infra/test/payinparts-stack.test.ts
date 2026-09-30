@@ -114,6 +114,17 @@ describe('API', () => {
     });
   });
 
+  it('creates throttled routes before the stage that references them', () => {
+    // CloudFormation rejects RouteSettings for a route key that doesn't exist yet
+    const [stage] = Object.values(template.findResources('AWS::ApiGatewayV2::Stage'));
+    const routes = template.findResources('AWS::ApiGatewayV2::Route');
+    const throttledKeys = Object.keys(stage!.Properties.RouteSettings);
+    for (const key of throttledKeys) {
+      const [routeId] = Object.entries(routes).find(([, r]) => r.Properties.RouteKey === key)!;
+      expect(stage!.DependsOn).toContain(routeId);
+    }
+  });
+
   it('runs Lambdas on Node 22 with tracing', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       Runtime: 'nodejs22.x',
