@@ -97,3 +97,55 @@ describe('API', () => {
     template.hasResourceProperties('AWS::DynamoDB::Table', { BillingMode: 'PAY_PER_REQUEST' });
   });
 });
+
+describe('web hosting', () => {
+  it('keeps the site bucket private', () => {
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      PublicAccessBlockConfiguration: {
+        BlockPublicAcls: true,
+        BlockPublicPolicy: true,
+        IgnorePublicAcls: true,
+        RestrictPublicBuckets: true,
+      },
+    });
+  });
+
+  it('routes /api/* to the HTTP API without caching', () => {
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        CacheBehaviors: Match.arrayWith([
+          Match.objectLike({
+            PathPattern: '/api/*',
+            ViewerProtocolPolicy: 'https-only',
+            CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad', // Managed-CachingDisabled
+          }),
+        ]),
+      }),
+    });
+  });
+
+  it('rewrites only extension-less paths to index.html', () => {
+    const fns = Object.values(template.findResources('AWS::CloudFront::Function'));
+    expect(fns).toHaveLength(1);
+    expect(fns[0]!.Properties.FunctionCode).toContain("indexOf('.')");
+  });
+
+  it('outputs the site URL', () => {
+    template.hasOutput('SiteUrl', {});
+  });
+});
+
+describe('monitoring', () => {
+  it('sends alarms to the alert email', () => {
+    template.hasResourceProperties('AWS::SNS::Subscription', { Protocol: 'email', Endpoint: 'test@example.com' });
+  });
+
+  it('has an error alarm per function and an API 5xx alarm', () => {
+    const alarms = Object.values(template.findResources('AWS::CloudWatch::Alarm'));
+    expect(alarms.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('has a dashboard', () => {
+    template.hasResourceProperties('AWS::CloudWatch::Dashboard', { DashboardName: 'PayInParts' });
+  });
+});
