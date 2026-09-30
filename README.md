@@ -9,7 +9,7 @@ Built on AWS serverless in TypeScript.
 
 - Full-stack TypeScript: React frontend, Lambda backend, CDK infrastructure — one shared `core` package.
 - AWS serverless: CloudFront, S3, API Gateway, Lambda, DynamoDB, Bedrock.
-- IAM done right: **no access keys anywhere**. SSO locally, OIDC in CI, one least-privilege role per Lambda.
+- IAM done right: **no access keys anywhere**. `aws login` locally (short-lived console credentials), OIDC in CI, one least-privilege role per Lambda.
 - Production basics: CI/CD, structured logs, X-Ray tracing (from Lambda), dashboard, alarms, smoke and e2e tests.
 - AI with guardrails: Claude explains numbers; it never calculates them.
 
@@ -49,7 +49,7 @@ Manual deploy:
 
 ```bash
 export AWS_PROFILE=payinparts
-aws sso login
+aws login --profile payinparts
 pnpm --filter @payinparts/web build
 pnpm --filter @payinparts/infra exec cdk deploy PayInParts -c alertEmail=<email> -c githubRepo=maxaakre/payinparts
 ```
@@ -59,9 +59,10 @@ pnpm --filter @payinparts/infra exec cdk deploy PayInParts -c alertEmail=<email>
 Use `<owner>/<repo>` for your GitHub repo (this repo: `maxaakre/payinparts`).
 
 1. Secure the root user with MFA.
-2. Create a **$10 budget** with email alerts.
-3. Set up **IAM Identity Center**, then run `aws configure sso --profile payinparts`.
-4. Enable **Bedrock access to Claude Haiku 4.5** in `eu-north-1`.
+2. Create a **$10 budget** with email alerts (skip while on the AWS free plan — you can't be charged).
+3. Create an IAM user in group `admins` (AdministratorAccess) with **console access only — no access keys**, turn on MFA, then run `aws login --profile payinparts` (AWS CLI ≥ 2.32).
+   IAM Identity Center is the enterprise alternative, but enabling it creates an AWS Organization, which ends the free plan.
+4. Enable **Bedrock access to Claude Haiku 4.5** in `eu-north-1` (submit Anthropic's one-time use case form). New accounts may wait up to 2 hours for account verification.
 5. `export AWS_PROFILE=payinparts` and run `pnpm --filter @payinparts/infra exec cdk bootstrap aws://<account>/eu-north-1`.
 6. Deploy the GitHub OIDC stack: `pnpm --filter @payinparts/infra exec cdk deploy PayInPartsGithubOidc -c alertEmail=<email> -c githubRepo=<owner>/<repo>`.
 7. Set repo variables: `gh variable set AWS_ACCOUNT_ID --body <account>` and `gh variable set ALERT_EMAIL --body <email>`.

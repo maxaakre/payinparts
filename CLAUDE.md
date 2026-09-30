@@ -12,7 +12,7 @@ Demo pay-later checkout for a Resurs technical interview. **No real money, no re
 ## Rules
 - Money is integer öre. Use `kr()` to convert. Never store floats.
 - The AI explains numbers from `packages/core`; it never calculates.
-- No AWS access keys, ever. Local: `aws sso login`. CI: OIDC.
+- No AWS access keys, ever. Local: `aws login --profile payinparts` (and `export AWS_PROFILE=payinparts` — the shell default profile points at another account). CI: OIDC.
 - Each Lambda gets only the IAM actions it needs. `infra/test` checks this.
 - API errors: `{ error: { code, message } }`.
 - TDD: write the failing test first.
