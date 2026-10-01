@@ -166,14 +166,44 @@ VITE_API_PROXY=https://d58y7vetykriz.cloudfront.net pnpm --filter @payinparts/we
 
 The Lambdas are tested locally with mocked DynamoDB and Bedrock (`pnpm --filter @payinparts/api test`). There is no local Lambda emulator — deploy to see backend changes live.
 
+## Log in to AWS (every new terminal)
+
+You need this before any `aws` or `cdk` command. The login is short-lived (a few hours) — no access keys.
+
+1. **Point this terminal at the project's AWS profile:**
+   ```bash
+   export AWS_PROFILE=payinparts
+   ```
+   Do this in **every new terminal window**. Otherwise the terminal may use another AWS account.
+2. **Log in:**
+   ```bash
+   aws login --profile payinparts
+   ```
+   Your browser opens. Log in as the IAM user (not root), enter your MFA code, and click **Allow**.
+   If it asks *"Configure AWS skills and the AWS MCP server…?"*, answer `n`.
+3. **Check you are in the right account:**
+   ```bash
+   aws sts get-caller-identity
+   ```
+   The `Arn` should end with `:user/<your-user>` — not `root`.
+
+**Troubleshooting**
+
+| You see | Fix |
+|---|---|
+| `Invalid choice` for `aws login` | Your AWS CLI is too old. Run `aws --version` (need ≥ 2.32), then `brew upgrade awscli`, or use `/opt/homebrew/bin/aws login`. |
+| `Your session has expired` | Run step 2 again. |
+| `The config profile (payinparts) could not be found` | Run step 2 — it creates the profile. |
+| `Profile '…' is already configured with Access Key credentials` | You forgot `--profile payinparts`; it tried another profile. |
+
 ## Deploy
 
 Merging to `main` deploys via GitHub Actions (OIDC, no stored keys).
 Manual deploy:
 
+First [log in to AWS](#log-in-to-aws-every-new-terminal), then:
+
 ```bash
-export AWS_PROFILE=payinparts
-aws login --profile payinparts
 pnpm --filter @payinparts/web build
 pnpm --filter @payinparts/infra exec cdk deploy PayInParts -c alertEmail=<email> -c githubRepo=maxaakre/payinparts
 ```
