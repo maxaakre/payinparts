@@ -63,12 +63,83 @@ The browser only talks to **one domain** (CloudFront). `/api/*` goes to API Gate
 
 ## Architecture
 
+### The big picture
+
+```mermaid
+flowchart LR
+    user(["👤 Customer<br/>in the browser"])
+
+    subgraph aws["☁️ AWS (Stockholm)"]
+        cdn["🌐 CloudFront<br/><i>one web address</i>"]
+        s3["📦 S3<br/><i>the React app</i>"]
+        api["🚪 API Gateway<br/><i>the /api door</i>"]
+
+        subgraph lambdas["⚙️ Lambda functions"]
+            products["products<br/><i>list products</i>"]
+            orders["orders<br/><i>create · get · confirm</i>"]
+            credit["credit-check<br/><i>run credit rules</i>"]
+            explain["explain-plan<br/><i>ask the AI</i>"]
+        end
+
+        db[("🗄️ DynamoDB<br/><i>orders & decisions</i>")]
+        ai["🤖 Bedrock<br/><i>Claude Haiku 4.5</i>"]
+    end
+
+    user --> cdn
+    cdn -- "pages" --> s3
+    cdn -- "/api/*" --> api
+    api --> products
+    api --> orders
+    api --> credit
+    api --> explain
+    orders --> db
+    credit --> db
+    explain --> db
+    explain --> ai
 ```
-Browser ─► CloudFront ─┬─► S3 (React app)
-                       └─► /api/* ─► API Gateway ─┬─► products
-                                                   ├─► orders ──────┐
-                                                   ├─► credit-check ├─► DynamoDB
-                                                   └─► explain-plan ┘─► Bedrock (Claude)
+
+**In one sentence:** the browser talks to **one address** (CloudFront). Pages come from **S3**. Everything under `/api` goes to a small **Lambda function** for that job. The functions store data in **DynamoDB**, and only `explain-plan` may talk to the **AI**.
+
+### One purchase, step by step
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as 👤 Customer
+    participant W as 🖥️ Web app
+    participant O as orders
+    participant K as credit-check
+    participant E as explain-plan
+    participant D as 🗄️ DynamoDB
+    participant B as 🤖 Claude
+
+    C->>W: Pick product + "split into 3 months"
+    W->>O: Create order
+    O->>D: Save draft order with the plan<br/>(calculated on the server)
+    C->>W: Pick test customer + income
+    W->>K: Run credit check
+    K->>D: Save decision (approved / changes / declined)
+    C->>W: "Explain my plan"
+    W->>E: Ask a question
+    E->>D: Load plan + count question
+    E->>B: Explain these exact numbers
+    B-->>E: Plain-language answer
+    E-->>W: Show the answer
+    C->>W: Confirm
+    W->>O: Confirm order
+    O->>D: Mark as confirmed ✅
+```
+
+### How code reaches AWS
+
+```mermaid
+flowchart LR
+    dev["👩‍💻 Developer"] -- "push branch" --> pr["🔀 Pull request"]
+    pr -- "tests + cdk diff" --> ci["✅ CI checks"]
+    ci -- "merge" --> main["main"]
+    main -- "OIDC login<br/>(no keys)" --> deploy["🚀 Deploy to AWS"]
+    deploy --> smoke["🔎 Smoke test"]
+    smoke --> e2e["🧪 End-to-end test"]
 ```
 
 ## Repo layout
