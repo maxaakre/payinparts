@@ -2,15 +2,15 @@ import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { calculatePlan, ExplainRequest, PAYMENT_OPTIONS, type ExplainResponse } from '@payinparts/core';
 import { askModel, type ModelAnswer } from '../ai/bedrock';
 import { buildSystemPrompt, buildUserMessage, MAX_AI_QUESTIONS, MAX_AI_QUESTIONS_PER_DAY } from '../ai/prompt';
-import { getOrderMeta, incrementAiCount, incrementDailyAiCount } from '../db';
+import { incrementAiCount, incrementDailyAiCount } from '../db';
+import { requireOrderMeta } from '../require-order';
 import { HttpError, httpHandler, logger, metrics, ok, parseBody, pathId } from '../http';
 
 export const handler = httpHandler(async (event) => {
   const id = pathId(event);
   const input = parseBody(event, ExplainRequest);
 
-  const order = await getOrderMeta(id);
-  if (!order) throw new HttpError(404, 'NOT_FOUND', 'Order not found');
+  const order = await requireOrderMeta(id);
 
   const count = await incrementAiCount(id, MAX_AI_QUESTIONS);
   if (count === undefined) {

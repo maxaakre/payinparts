@@ -85,13 +85,16 @@ export async function confirmOrder(id: string, confirmedAt: string): Promise<boo
   }
 }
 
-/** Atomically counts AI questions. Returns the new count, or undefined when the limit is reached. */
-export async function incrementAiCount(orderId: string, max: number): Promise<number | undefined> {
+/**
+ * Atomically adds 1 to the counter item at `key`, but only while it is below `max`.
+ * Returns the new count, or undefined when the limit is reached.
+ */
+async function incrementCounter(key: { PK: string; SK: string }, max: number): Promise<number | undefined> {
   try {
     const res = await doc.send(
       new UpdateCommand({
         TableName: tableName(),
-        Key: { PK: pk(orderId), SK: 'AI#COUNT' },
+        Key: key,
         UpdateExpression: 'ADD #count :one',
         ConditionExpression: 'attribute_not_exists(#count) OR #count < :max',
         ExpressionAttributeNames: { '#count': 'count' },
@@ -106,23 +109,10 @@ export async function incrementAiCount(orderId: string, max: number): Promise<nu
   }
 }
 
+/** Counts AI questions per order. Returns the new count, or undefined when the limit is reached. */
+export const incrementAiCount = (orderId: string, max: number) =>
+  incrementCounter({ PK: pk(orderId), SK: 'AI#COUNT' }, max);
+
 /** Global daily AI budget (UTC day). Returns the new count, or undefined when the cap is reached. */
-export async function incrementDailyAiCount(max: number, now = new Date()): Promise<number | undefined> {
-  try {
-    const res = await doc.send(
-      new UpdateCommand({
-        TableName: tableName(),
-        Key: { PK: `AI#DAY#${now.toISOString().slice(0, 10)}`, SK: 'COUNT' },
-        UpdateExpression: 'ADD #count :one',
-        ConditionExpression: 'attribute_not_exists(#count) OR #count < :max',
-        ExpressionAttributeNames: { '#count': 'count' },
-        ExpressionAttributeValues: { ':one': 1, ':max': max },
-        ReturnValues: 'UPDATED_NEW',
-      }),
-    );
-    return Number(res.Attributes?.count ?? max);
-  } catch (err) {
-    if (isConditionalFailure(err)) return undefined;
-    throw err;
-  }
-}
+export const incrementDailyAiCount = (max: number, now = new Date()) =>
+  incrementCounter({ PK: `AI#DAY#${now.toISOString().slice(0, 10)}`, SK: 'COUNT' }, max);
