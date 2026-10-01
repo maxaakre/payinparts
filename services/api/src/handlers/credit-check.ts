@@ -7,7 +7,8 @@ import {
   needsCreditCheck,
   type StoredDecision,
 } from '@payinparts/core';
-import { getOrderMeta, putDecision } from '../db';
+import { putDecision } from '../db';
+import { requireOrderMeta } from '../require-order';
 import { HttpError, httpHandler, logger, metrics, ok, parseBody, pathId } from '../http';
 
 export const handler = httpHandler(async (event) => {
@@ -16,8 +17,7 @@ export const handler = httpHandler(async (event) => {
   const persona = findPersona(input.personaId);
   if (!persona) throw new HttpError(400, 'VALIDATION_ERROR', 'Unknown test customer');
 
-  const order = await getOrderMeta(id);
-  if (!order) throw new HttpError(404, 'NOT_FOUND', 'Order not found');
+  const order = await requireOrderMeta(id);
   if (order.status === 'confirmed') throw new HttpError(409, 'CONFLICT', 'Order is already confirmed');
   if (!needsCreditCheck(order.option)) {
     throw new HttpError(409, 'CONFLICT', 'Pay now does not need a credit check');
