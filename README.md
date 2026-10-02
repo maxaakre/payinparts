@@ -196,6 +196,40 @@ You need this before any `aws` or `cdk` command. The login is short-lived (a few
 | `The config profile (payinparts) could not be found` | Run step 2 — it creates the profile. |
 | `Profile '…' is already configured with Access Key credentials` | You forgot `--profile payinparts`; it tried another profile. |
 
+## Look at the database
+
+All data lives in one **DynamoDB table** in `eu-north-1`. CDK names it, so it looks like `PayInParts-TableXXXX-XXXX`.
+
+First [log in to AWS](#log-in-to-aws-every-new-terminal).
+
+**In the AWS Console (easiest)**
+
+1. Set the region to **Stockholm (eu-north-1)**.
+2. Go to **DynamoDB → Tables**.
+3. Click the table that starts with `PayInParts-Table`.
+4. Click **Explore table items**.
+
+**In the terminal**
+
+```bash
+# Find the table name
+aws dynamodb list-tables --region eu-north-1
+
+# Show all items (scan reads the whole table — fine for demo data)
+aws dynamodb scan --table-name <table-name> --region eu-north-1 --output table
+```
+
+**What the rows mean**
+
+| `PK` | `SK` | What it is |
+|---|---|---|
+| `ORDER#<id>` | `META` | The order |
+| `ORDER#<id>` | `DECISION` | The credit check result |
+| `ORDER#<id>` | `AI#COUNT` | AI questions asked for this order |
+| `AI#DAY#<yyyy-mm-dd>` | `COUNT` | AI questions asked that day (all orders) |
+
+Money is stored as **integer öre** — `129900` means 1 299 kr.
+
 ## Deploy
 
 Merging to `main` deploys via GitHub Actions (OIDC, no stored keys).
